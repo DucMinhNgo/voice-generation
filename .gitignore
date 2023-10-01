@@ -10,3 +10,6 @@ Retrieval-based-Voice-Conversion-WebUI/
 devin-youtube/
 train_rvc.ipynb
 *.pt
+
+mp3_gen/
+wav_gen/
