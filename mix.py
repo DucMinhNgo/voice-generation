@@ -5,7 +5,7 @@ audio1 = AudioSegment.from_mp3("output.mp3")
 audio2 = AudioSegment.from_mp3("output2.mp3")
 
 # Ensure both audio segments are 14 seconds long
-target_duration = 30 * 1000  # 14 seconds in milliseconds
+target_duration = 14 * 1000  # 14 seconds in milliseconds
 audio1 = audio1[:target_duration]
 audio2 = audio2[:target_duration]
 
