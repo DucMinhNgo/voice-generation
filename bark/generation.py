@@ -485,6 +485,7 @@ def generate_text_semantic(
         pbar_state = 0
         tot_generated_duration_s = 0
         kv_cache = None
+        print (n_tot_steps)
         for n in range(n_tot_steps):
             if use_kv_caching and kv_cache is not None:
                 x_input = x[:, [-1]]
@@ -660,6 +661,7 @@ def generate_coarse(
         x_coarse_in = torch.from_numpy(x_coarse)[None].to(device)
         n_window_steps = int(np.ceil(n_steps / sliding_window_len))
         n_step = 0
+        print ('Step 1')
         for _ in tqdm.tqdm(range(n_window_steps), total=n_window_steps, disable=silent):
             semantic_idx = base_semantic_idx + int(round(n_step / semantic_to_coarse_ratio))
             # pad from right side
@@ -819,6 +821,7 @@ def generate_fine(
     n_loops = np.max([0, int(np.ceil((x_coarse_gen.shape[1] - (1024 - n_history)) / 512))]) + 1
     with _inference_mode():
         in_arr = torch.tensor(in_arr.T).to(device)
+        print ("Step 2:")
         for n in tqdm.tqdm(range(n_loops), disable=silent):
             start_idx = np.min([n * 512, in_arr.shape[0] - 1024])
             start_fill_idx = np.min([n_history + n * 512, in_arr.shape[0] - 512])
