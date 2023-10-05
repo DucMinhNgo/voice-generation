@@ -1,9 +1,10 @@
 import redis
 import multiprocessing
 import time
+import json
 import os
 import uuid
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 from IPython.display import Audio
 import nltk  # we'll use this to split into sentences
 import numpy as np
@@ -18,12 +19,10 @@ from pydub import AudioSegment
 
 # Function to process a single item from the queue
 def process_item(item):
+    data = json.loads(item)
     # Replace this with your actual processing logic
     print(f"Processing item: {item}")
-    text_prompt = """
-        ♪ Ohayô, oyasumi, Konnichiwa, Konbanwa, Ohayô, oyasumi, Konnichiwa, Konbanwa ♪
-        ♪ Itte Kimasu, Itte rasshai, Tadaima, Okaerinasai, Itadakimasu, Gochisôsama, Rararararara arigatô, Sayônara oyasumi, Mata ashita, Kinô no yume no tsuzuki o mini yukô ♪
-    """
+    text_prompt = data["text_prompt"]
     filename = str(uuid.uuid4())
     audio_array = generate_audio(text_prompt)
     Audio(audio_array, rate=SAMPLE_RATE)
@@ -33,6 +32,7 @@ def process_item(item):
 
     # Export it as an MP3 file
     wav_file.export("../mp3_gen/"+ filename +".mp3", format="mp3")
+    print(f"Done item: {item}")
 
 # Function to pull and process items from the Redis queue
 def worker(queue_name):

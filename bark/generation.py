@@ -365,6 +365,7 @@ def preload_models(
         text_use_gpu or coarse_use_gpu or fine_use_gpu or codec_use_gpu
     ):
         logger.warning("No GPU being used. Careful, inference might be very slow!")
+        logger.warning("Dustin Pro")
     _ = load_model(
         model_type="text", use_gpu=text_use_gpu, use_small=text_use_small, force_reload=force_reload, path=path if text_model_path is None else text_model_path
     )
@@ -415,6 +416,7 @@ def generate_text_semantic(
     use_kv_caching=False,
 ):
     """Generate semantic tokens from text."""
+    print ("generate_text_semantic") 
     assert isinstance(text, str)
     text = _normalize_whitespace(text)
     assert len(text.strip()) > 0
@@ -441,6 +443,7 @@ def generate_text_semantic(
     global models
     global models_devices
     if "text" not in models:
+        print ("dustin pro")
         preload_models()
     model_container = models["text"]
     model = model_container["model"]

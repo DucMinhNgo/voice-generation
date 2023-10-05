@@ -91,6 +91,7 @@ def generate_audio(
     silent: bool = False,
     output_full: bool = False,
 ):
+    print ("generate_audio")
     """Generate audio array from input text.
 
     Args:
@@ -104,12 +105,14 @@ def generate_audio(
     Returns:
         numpy audio array at sample frequency 24khz
     """
+    print ("text_to_semantic")
     semantic_tokens = text_to_semantic(
         text,
         history_prompt=history_prompt,
         temp=text_temp,
         silent=silent,
     )
+    print ("semantic_to_waveform")
     out = semantic_to_waveform(
         semantic_tokens,
         history_prompt=history_prompt,

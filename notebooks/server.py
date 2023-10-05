@@ -3,10 +3,7 @@
 import json
 from flask import Flask, request, jsonify
 import os
-
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
-
-
+import redis
 from IPython.display import Audio
 import nltk  # we'll use this to split into sentences
 import numpy as np
@@ -19,8 +16,12 @@ from bark.api import semantic_to_waveform
 from bark import generate_audio, SAMPLE_RATE
 from scipy.io.wavfile import write as write_wav
 from pydub import AudioSegment
+import uuid
 
-preload_models()
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+queue_name = 'my_queue'
+redis_client = redis.Redis(host='localhost', port=6379, db=0)
+
 app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
@@ -34,17 +35,40 @@ def create_record():
 
 @app.route('/', methods=['POST'])
 def update_record():
-   text_prompt = """
-        ♪ It's been a long day without you, my friend And I'll tell you all about it when I see you again, My name's Dustin Pro, My name's Dustin Pro ♪
-        ♪ It's been a long day without you, my friend And I'll tell you all about it when I see you again, My name's Dustin Pro, My name's Dustin Pro ♪
+    text_prompt = """
+        ♪ OMadoromi no naka de namanurui koora ni, koko de nai dokoka wo yumemita yo, kyoushitsu no mado no soto ni ♪
+        ♪ densha ni yurare  hakobareru asa ni, Aishikata sae mo  kimi no nioi ga shita, arukikata sae mo  sono waraigoe ga shita  ♪
     """
-   audio_array = generate_audio(text_prompt)
-   write_wav("output2.wav", SAMPLE_RATE, audio_array)
+    request_id = str(uuid.uuid4())
+    data = {
+       'request_id': request_id,
+       'text_prompt': text_prompt
+    }
+    redis_client.set(request_id, json.dumps({
+        'data': data,
+        'status': 'in-progress'
+    }))
+    redis_client.rpush(queue_name, json.dumps(
+        data
+    ))
 
-    # # # Load the WAV file
-    # wav_file1 = AudioSegment.from_file("output2.wav", format="wav")
+    return jsonify({ 'message': 'OK'})
 
-    # # # Export it as an MP3 file
-    # wav_file1.export("../output1.mp3", format="mp3")
-   return jsonify({ 'message': 'OK'})
+@app.route('/get-list', methods=['GET'])
+def get_list():
+    keys = redis_client.keys()
+    print (keys[0].decode("utf-8"))
+    print (json.loads(redis_client.get(keys[0])))
+    filter_arr = []
+    for key in keys:
+        if key.decode("utf-8") != queue_name:
+          data = json.loads(redis_client.get(keys[0]))
+          filter_arr.append({
+              'key': key.decode("utf-8"),
+              'data': {
+                  'request_id': data,
+              }
+            })
+    return jsonify(result={ 'message': 'OK', 'data': filter_arr})
+
 app.run(debug=True)
