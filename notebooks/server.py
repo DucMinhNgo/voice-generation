@@ -68,12 +68,10 @@ def update_record():
 @app.route('/get-list', methods=['GET'])
 def get_list():
     keys = redis_client.keys()
-    print (keys[0].decode("utf-8"))
-    print (json.loads(redis_client.get(keys[0])))
     filter_arr = []
     for key in keys:
         if key.decode("utf-8") != queue_name:
-          data = json.loads(redis_client.get(keys[0]))
+          data = json.loads(redis_client.get(key))
           filter_arr.append({
               'key': key.decode("utf-8"),
               'data': {
@@ -81,5 +79,13 @@ def get_list():
               }
             })
     return jsonify(result={ 'message': 'OK', 'data': filter_arr})
+  
+
+@app.route('/remove-all', methods=['DELETE'])
+def remove_all():
+  keys = redis_client.keys()
+  for key in keys:
+     redis_client.delete(key)
+  return jsonify(result={ 'message': 'OK'}) 
 
 app.run(debug=True)

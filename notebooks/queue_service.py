@@ -17,11 +17,19 @@ from bark import generate_audio, SAMPLE_RATE
 from scipy.io.wavfile import write as write_wav
 from pydub import AudioSegment
 
+redis_client = redis.Redis(host='localhost', port=6379, db=0)
+
 # Function to process a single item from the queue
 def process_item(item):
     data = json.loads(item)
+    print (data['request_id'])
+    # data_get_from_redis = json.loads(redis_client.get(data['request_id']))
+    # data_get_from_redis['data']['results'] = [
+    #    "dustin" +".mp3" 
+    # ]
+    # redis_client.set(data['request_id'], json.dumps(data_get_from_redis))
     # Replace this with your actual processing logic
-    print(f"Processing item: {item}")
+    # print(f"Processing item: {item}")
     text_prompt = data["text_prompt"]
     filename = str(uuid.uuid4())
     audio_array = generate_audio(text_prompt)
@@ -32,11 +40,20 @@ def process_item(item):
 
     # Export it as an MP3 file
     wav_file.export("../mp3_gen/"+ filename +".mp3", format="mp3")
-    print(f"Done item: {item}")
+    data_get_from_redis = json.loads(redis_client.get(data['request_id']))
+    data_get_from_redis['data']['results'] = [
+       filename +".mp3" 
+    ]
+
+    print ('data_get_from_redis')
+    print (data['request_id'])
+    print (data_get_from_redis)
+    redis_client.set(data['request_id'], json.dumps(data_get_from_redis))
+    # redis_client.get()
+    # print(f"Done item: {item}")
 
 # Function to pull and process items from the Redis queue
 def worker(queue_name):
-    redis_client = redis.Redis(host='localhost', port=6379, db=0)
     while True:
         # Blocking pop operation from the queue
         item = redis_client.blpop(queue_name, timeout=0)
