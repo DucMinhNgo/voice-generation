@@ -35,14 +35,19 @@ def create_record():
 
 @app.route('/', methods=['POST'])
 def update_record():
-    text_prompt = """
-        ♪ OMadoromi no naka de namanurui koora ni, koko de nai dokoka wo yumemita yo, kyoushitsu no mado no soto ni ♪
-        ♪ densha ni yurare  hakobareru asa ni, Aishikata sae mo  kimi no nioi ga shita, arukikata sae mo  sono waraigoe ga shita  ♪
+    body = json.loads(request.data)
+    text = ""
+    for lyric in body['lyrics']:
+        text += "♪ " + lyric + " ♪\n"
+
+    text_prompt = f"""
+      {text}
     """
+    print (text_prompt)
     request_id = str(uuid.uuid4())
     data = {
        'request_id': request_id,
-       'text_prompt': text_prompt
+       'text_prompt': text_prompt,
     }
     redis_client.set(request_id, json.dumps({
         'data': data,
@@ -52,7 +57,7 @@ def update_record():
         data
     ))
 
-    return jsonify({ 'message': 'OK'})
+    return jsonify({ 'message': 'OK', 'data': data })
 
 @app.route('/get-list', methods=['GET'])
 def get_list():
