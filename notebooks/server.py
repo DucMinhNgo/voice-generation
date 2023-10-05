@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf-8
 import json
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 import os
 import redis
 from IPython.display import Audio
@@ -26,8 +26,12 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def query_records():
+  return jsonify({ 'message': 'OK'})
 
-    return jsonify({ 'message': 'OK'})
+@app.route("/get-file/<string:filename>")
+def return_pdf(filename):
+  print (filename)
+  return send_file('../mp3_gen/' + filename)
 
 @app.route('/', methods=['PUT'])
 def create_record():
@@ -46,12 +50,14 @@ def update_record():
     print (text_prompt)
     request_id = str(uuid.uuid4())
     data = {
-       'request_id': request_id,
-       'text_prompt': text_prompt,
+      'request_id': request_id,
+      'lyrics': body['lyrics'],
+      'text_prompt': text_prompt,
+      'status': 'in-progress',
+      'results': [],
     }
     redis_client.set(request_id, json.dumps({
         'data': data,
-        'status': 'in-progress'
     }))
     redis_client.rpush(queue_name, json.dumps(
         data
