@@ -17,12 +17,14 @@ from bark import generate_audio, SAMPLE_RATE
 from scipy.io.wavfile import write as write_wav
 from pydub import AudioSegment
 import uuid
+from flask_cors import CORS
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 queue_name = 'my_queue'
 redis_client = redis.Redis(host='localhost', port=6379, db=0)
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/', methods=['GET'])
 def query_records():
@@ -33,12 +35,12 @@ def return_pdf(filename):
   print (filename)
   return send_file('../mp3_gen/' + filename)
 
-@app.route('/', methods=['PUT'])
-def create_record():
-    return jsonify({ 'message': 'OK'})
+# @app.route('/', methods=['PUT'])
+# def create_record():
+#     return jsonify({ 'message': 'OK'})
 
 @app.route('/', methods=['POST'])
-def update_record():
+def create_record():
     body = json.loads(request.data)
     text = ""
     for lyric in body['lyrics']:
@@ -63,7 +65,19 @@ def update_record():
         data
     ))
 
-    return jsonify({ 'message': 'OK', 'data': data })
+    return jsonify({ 'message': 'OK', 'data': data, 'status': 200 })
+
+@app.route("/get-detail/<string:id>")
+def get_detail(id):
+   return jsonify({
+    'message': 'OK',
+    'data': {
+       'key': id,
+       'data': {
+          'request_id': json.loads(redis_client.get(id)),
+       }
+    } 
+   })
 
 @app.route('/get-list', methods=['GET'])
 def get_list():
@@ -78,7 +92,7 @@ def get_list():
                   'request_id': data,
               }
             })
-    return jsonify(result={ 'message': 'OK', 'data': filter_arr})
+    return jsonify(result={ 'message': 'OK', 'data': filter_arr, 'status': 200})
   
 
 @app.route('/remove-all', methods=['DELETE'])

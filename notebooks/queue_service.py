@@ -23,34 +23,29 @@ redis_client = redis.Redis(host='localhost', port=6379, db=0)
 def process_item(item):
     data = json.loads(item)
     print (data['request_id'])
-    # data_get_from_redis = json.loads(redis_client.get(data['request_id']))
-    # data_get_from_redis['data']['results'] = [
-    #    "dustin" +".mp3" 
-    # ]
-    # redis_client.set(data['request_id'], json.dumps(data_get_from_redis))
-    # Replace this with your actual processing logic
-    # print(f"Processing item: {item}")
     text_prompt = data["text_prompt"]
-    filename = str(uuid.uuid4())
-    audio_array = generate_audio(text_prompt)
-    Audio(audio_array, rate=SAMPLE_RATE)
 
-    write_wav("../wav_gen/" + filename + ".wav", SAMPLE_RATE, audio_array)
-    wav_file = AudioSegment.from_file("../wav_gen/" + filename + ".wav", format="wav")
+    keyname = str(uuid.uuid4())
+    for i in range(5):
+        filename = keyname + "-" + str(i + 1)
+        audio_array = generate_audio(text_prompt)
+        Audio(audio_array, rate=SAMPLE_RATE)
 
-    # Export it as an MP3 file
-    wav_file.export("../mp3_gen/"+ filename +".mp3", format="mp3")
-    data_get_from_redis = json.loads(redis_client.get(data['request_id']))
-    data_get_from_redis['data']['results'] = [
-       filename +".mp3" 
-    ]
+        write_wav("../wav_gen/" + filename + ".wav", SAMPLE_RATE, audio_array)
+        wav_file = AudioSegment.from_file("../wav_gen/" + filename + ".wav", format="wav")
 
-    print ('data_get_from_redis')
-    print (data['request_id'])
-    print (data_get_from_redis)
-    redis_client.set(data['request_id'], json.dumps(data_get_from_redis))
-    # redis_client.get()
-    # print(f"Done item: {item}")
+        # Export it as an MP3 file
+        wav_file.export("../mp3_gen/"+ filename +".mp3", format="mp3")
+        
+        data_get_from_redis = json.loads(redis_client.get(data['request_id']))
+        results = data_get_from_redis['data']['results']
+        results.append(filename +".mp3")
+        data_get_from_redis['data']['results'] = results
+
+        print ('data_get_from_redis')
+        print (data['request_id'])
+        print (data_get_from_redis)
+        redis_client.set(data['request_id'], json.dumps(data_get_from_redis))
 
 # Function to pull and process items from the Redis queue
 def worker(queue_name):
