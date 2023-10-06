@@ -31,9 +31,23 @@ def query_records():
   return jsonify({ 'message': 'OK'})
 
 @app.route("/get-file/<string:filename>")
-def return_pdf(filename):
+def return_file(filename):
   print (filename)
   return send_file('../mp3_gen/' + filename)
+
+@app.route("/get-best-file/<string:filename>")
+def return_best_file(filename):
+  print (filename)
+  return send_file('../mp3_gen/best_music/' + filename)
+
+@app.route("/get-best-music")
+def get_best_music():
+  directory_path = '../mp3_gen/best_music'
+  files_only = [f for f in os.listdir(directory_path) if os.path.isfile(os.path.join(directory_path, f))]
+  return jsonify({
+     'message': 'OK',
+     'results': files_only
+  }) 
 
 # @app.route('/', methods=['PUT'])
 # def create_record():
