@@ -46,6 +46,10 @@ def process_item(item):
         print (data['request_id'])
         print (data_get_from_redis)
         redis_client.set(data['request_id'], json.dumps(data_get_from_redis))
+    # update status done
+    data_get_from_redis = json.loads(redis_client.get(data['request_id']))
+    data_get_from_redis['data']['status'] = 'completed'
+    redis_client.set(data['request_id'], json.dumps(data_get_from_redis))
 
 # Function to pull and process items from the Redis queue
 def worker(queue_name):
