@@ -63,7 +63,7 @@ def worker(queue_name):
 
 if __name__ == "__main__":
     queue_name = "my_queue"  # Replace with your Redis queue name
-    num_processes = 4  # Number of worker processes
+    num_processes = 2  # Number of worker processes
     preload_models()
     
     # Create and start worker processes
