@@ -4,17 +4,6 @@ import json
 from flask import Flask, request, jsonify, send_file
 import os
 import redis
-from IPython.display import Audio
-import nltk  # we'll use this to split into sentences
-import numpy as np
-
-from bark.generation import (
-    generate_text_semantic,
-    preload_models,
-)
-from bark.api import semantic_to_waveform
-from bark import generate_audio, SAMPLE_RATE
-from scipy.io.wavfile import write as write_wav
 from pydub import AudioSegment
 import uuid
 from flask_cors import CORS
